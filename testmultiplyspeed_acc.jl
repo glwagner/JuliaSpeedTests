@@ -1,4 +1,5 @@
 # Functions for testing the speed of elementwise array multiplications.
+using ParallelAccelerator
 
 # ----------------------------------------------------------------------------- 
 function mult3d_unroll!(n::Int, a::Array{Complex128, 3},
@@ -15,6 +16,21 @@ function mult3d_unroll!(n::Int, a::Array{Complex128, 3},
         @fastmath @inbounds c[i, j, 2] = a[i, j, 2]*b[i, j, 2]
       end
     end
+  end
+end
+
+
+@acc function accmult!(a::Array{Complex128, 3}, b::Array{Complex128, 3}, 
+  c::Array{Complex128, 3}, nloops::Int)
+  for loop = 1:nloops
+    @fastmath c .= a.*b
+  end
+end
+
+@acc function accmult!(a::Array{Complex128, 2}, b::Array{Complex128, 2}, 
+  c::Array{Complex128, 2}, nloops::Int)
+  for loop = 1:nloops
+    @fastmath c .= a.*b
   end
 end
 
@@ -86,11 +102,8 @@ end
 nloops = 1000
 srand(123)
 
-for ntimes in 1:4
 
-println()
-
-for n in [32, 64, 128, 256, 512]
+for n in [32, 64, 128, 256, 512, 1024]
 
   a2 = exp.(2*im*pi*rand(n, n))
   b2 = exp.(2*im*pi*rand(n, n))
@@ -101,11 +114,20 @@ for n in [32, 64, 128, 256, 512]
   b3 = exp.(2*im*pi*rand(n, n, m))
   c3 = exp.(2*im*pi*rand(n, n, m))
 
+  #a2s = SharedArray{Complex128, 2}((n, n), 
+  #  init=a2s->a2s[Base.localindexes(a2s)]=myid())
+  #b2s = SharedArray{Complex128, 2}((n, n), 
+  #  init=b2s->b2s[Base.localindexes(b2s)]=myid())
+  #c2s = SharedArray{Complex128, 2}((n, n), 
+  #  init=c2s->c2s[Base.localindexes(c2s)]=myid())
+
   # Compilation calls
   loopmult!(n, a2, b2, c2, nloops)
   loopmult!(n, m, a3, b3, c3, nloops)
   fusedmult!(a2, b2, c2, nloops)
   fusedmult!(a3, b3, c3, nloops)
+  accmult!(a2, b2, c2, nloops)
+  accmult!(a3, b3, c3, nloops)
 
   if m == 2 
     mult3d_unroll!(n, a3, b3, c3, nloops)
@@ -117,14 +139,16 @@ for n in [32, 64, 128, 256, 512]
   @printf "N: %5d^2: %8s:" n "fused 3"
   @time fusedmult!(a3, b3, c3, nloops)
 
+  @printf "N: %5d^2: %8s:" n "acc 2"
+  @time accmult!(a2, b2, c2, nloops)
+
+  @printf "N: %5d^2: %8s:" n "acc 3"
+  @time accmult!(a3, b3, c3, nloops)
+
   @printf "N: %5d^2: %8s:" n "loop 2"
   @time loopmult!(n, a2, b2, c2, nloops)
 
   @printf "N: %5d^2: %8s:" n "loop 3"
   @time loopmult!(n, m, a3, b3, c3, nloops)
-
-  println()
-
-end
 
 end
