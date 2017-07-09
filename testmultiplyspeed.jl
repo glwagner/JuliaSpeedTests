@@ -20,16 +20,14 @@ function mult3d_unroll!(n::Int, a::Array{Complex128, 3},
 end
 
 
-@acc
-function accmult!(a::Array{Complex128, 3}, b::Array{Complex128, 3}, 
+@acc function accmult!(a::Array{Complex128, 3}, b::Array{Complex128, 3}, 
   c::Array{Complex128, 3}, nloops::Int)
   for loop = 1:nloops
     @fastmath c .= a.*b
   end
 end
 
-@acc
-function accmult!(a::Array{Complex128, 2}, b::Array{Complex128, 2}, 
+@acc function accmult!(a::Array{Complex128, 2}, b::Array{Complex128, 2}, 
   c::Array{Complex128, 2}, nloops::Int)
   for loop = 1:nloops
     @fastmath c .= a.*b
@@ -66,6 +64,17 @@ function loopmult!(n::Int, m::Int, a::Array{Complex128, 3},
   end
 end
 
+function parloopmult!(n::Int, m::Int, a::Array{Complex128, 3}, 
+  b::Array{Complex128, 3}, c::Array{Complex128, 3}, nloops::Int)
+  for loop = 1:nloops, k = 1:m
+    @parallel for j = 1:n
+      @simd for i = 1:n
+        @fastmath @inbounds c[i, j, k] = a[i, j, k]*b[i, j, k]
+      end
+    end
+  end
+end
+
 function loopmult!(n::Int, a::Array{Complex128, 2},  b::Array{Complex128, 2},  
   c::Array{Complex128, 2}, nloops::Int)
   for loop = 1:nloops, j = 1:n
@@ -74,6 +83,19 @@ function loopmult!(n::Int, a::Array{Complex128, 2},  b::Array{Complex128, 2},
     end
   end
 end
+
+function parloopmult!(n::Int, a::Array{Complex128, 2},  b::Array{Complex128, 2},  
+  c::Array{Complex128, 2}, nloops::Int)
+  for loop = 1:nloops
+    @parallel for j = 1:n
+      @simd for i = 1:n
+        @fastmath @inbounds c[i, j] = a[i, j]*b[i, j]
+      end
+    end
+  end
+end
+
+
 
 
 # Test
@@ -91,6 +113,13 @@ for n in [32, 64, 128, 256, 512, 1024]
   a3 = exp.(2*im*pi*rand(n, n, m))
   b3 = exp.(2*im*pi*rand(n, n, m))
   c3 = exp.(2*im*pi*rand(n, n, m))
+
+  #a2s = SharedArray{Complex128, 2}((n, n), 
+  #  init=a2s->a2s[Base.localindexes(a2s)]=myid())
+  #b2s = SharedArray{Complex128, 2}((n, n), 
+  #  init=b2s->b2s[Base.localindexes(b2s)]=myid())
+  #c2s = SharedArray{Complex128, 2}((n, n), 
+  #  init=c2s->c2s[Base.localindexes(c2s)]=myid())
 
   # Compilation calls
   loopmult!(n, a2, b2, c2, nloops)
