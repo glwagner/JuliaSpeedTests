@@ -90,7 +90,7 @@ for ntimes in 1:4
 
 println()
 
-for n in [32, 64, 128, 256, 512]
+for n in [32, 64, 128, 256, 512, 1024]
 
   a2 = exp.(2*im*pi*rand(n, n))
   b2 = exp.(2*im*pi*rand(n, n))
@@ -114,16 +114,16 @@ for n in [32, 64, 128, 256, 512]
   @printf "N: %5d^2: %8s:" n "fused 2"
   @time fusedmult!(a2, b2, c2, nloops)
 
-  @printf "N: %5d^2: %8s:" n "fused 3"
-  @time fusedmult!(a3, b3, c3, nloops)
-
-  @printf "N: %5d^2: %8s:" n "loop 2"
-  @time loopmult!(n, a2, b2, c2, nloops)
-
-  @printf "N: %5d^2: %8s:" n "loop 3"
-  @time loopmult!(n, m, a3, b3, c3, nloops)
-
-  println()
+#  @printf "N: %5d^2: %8s:" n "fused 3"
+#  @time fusedmult!(a3, b3, c3, nloops)
+#
+#  @printf "N: %5d^2: %8s:" n "loop 2"
+#  @time loopmult!(n, a2, b2, c2, nloops)
+#
+#  @printf "N: %5d^2: %8s:" n "loop 3"
+#  @time loopmult!(n, m, a3, b3, c3, nloops)
+#
+#  println()
 
 end
 

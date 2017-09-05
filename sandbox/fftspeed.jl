@@ -55,7 +55,7 @@ srand(123)
 effort = FFTW.MEASURE
 nloops = 400
 
-for nthreads in [1, 2]
+for nthreads in [2, 8]
   for N in [32, 64, 128, 256, 512, 1024]
 
     FFTW.set_num_threads(nthreads)
@@ -78,22 +78,22 @@ for nthreads in [1, 2]
     realfftloop(ar, arh, n, 1)
     realfftloop_plan(ar, arh, prfft, pirfft, n, 1)
 
-    @printf "N: %5d^2, threads: %d, %24s : " n nthreads "out-of-place fft"
-    @time fftloop(a, ah, nloops)
+    #@printf "N: %5d^2, threads: %d, %24s : " n nthreads "out-of-place fft"
+    #@time fftloop(a, ah, nloops)
 
     @printf "N: %5d^2, threads: %d, %24s : " n nthreads "in-place planned fft"
     @time fftloop_plan(a, ah, pfft, pifft, nloops)
 
-    @printf "N: %5d^2, threads: %d, %24s : " n nthreads "in-place fft"
-    @time inplacefftloop!(a, nloops)
+    #@printf "N: %5d^2, threads: %d, %24s : " n nthreads "in-place fft"
+    #@time inplacefftloop!(a, nloops)
 
-    @printf "N: %5d^2, threads: %d, %24s : " n nthreads "out-of-place real fft"
-    @time realfftloop(ar, arh, n, nloops)
+    #@printf "N: %5d^2, threads: %d, %24s : " n nthreads "out-of-place real fft"
+    #@time realfftloop(ar, arh, n, nloops)
 
-    @printf "N: %5d^2, threads: %d, %24s : " n nthreads "in-place planned rfft"
-    @time realfftloop_plan(ar, arh, prfft, pirfft, n, nloops)
+    #@printf "N: %5d^2, threads: %d, %24s : " n nthreads "in-place planned rfft"
+    #@time realfftloop_plan(ar, arh, prfft, pirfft, n, nloops)
 
-    println()
+    #println()
 
   end
 
