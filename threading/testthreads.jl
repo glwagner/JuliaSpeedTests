@@ -17,7 +17,7 @@ algebra_threaded!(x, y, z, nloops, a, b, c, d)
 
 
 # ----------------------------------------------------------------------------- 
-@printf("Testing basic and threaded algebra with %d threads...\n", 
+@printf("\nTesting basic and threaded algebra with %d threads...\n", 
   Threads.nthreads())
 for n in nz
 
@@ -25,17 +25,23 @@ for n in nz
   a, b, c, d = rand(n, n), rand(n, n), rand(n, n), rand(n, n)
   
   @printf("n: %d\n", n)
-  @printf("Basic:      ")
+  @printf("Basic:        ")
   @btime algebra_basic!($x, $y, $z, $nloops, $a, $b, $c, $d)
 
-  @printf("Half-fused: ")
+  @printf("Half-fused:   ")
   @btime algebra_halffused!($x, $y, $z, $nloops, $a, $b, $c, $d)
 
-  @printf("Unfused:    ")
+  @printf("Unfused:      ")
   @btime algebra_unfused!($x, $y, $z, $nloops, $a, $b, $c, $d)
 
-  @printf("Threaded:   ")
+  @printf("Parallel acc: ")
+  @btime algebra_acc!($x, $y, $z, $nloops, $a, $b, $c, $d)
+
+  @printf("Threaded:     ")
   @btime algebra_threaded!($x, $y, $z, $nloops, $a, $b, $c, $d)
+
+  @printf("Threadfuse:   ")
+  @btime algebra_threadfuse!($x, $y, $z, $nloops, $a, $b, $c, $d)
 
   @printf("\n")
 

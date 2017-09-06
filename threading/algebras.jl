@@ -3,7 +3,7 @@ module AlgebraTests
 using ParallelAccelerator
 
 export algebra_basic!, algebra_threaded!, algebra_unfused!,
-       algebra_halffused!, algebra_acc!
+       algebra_halffused!, algebra_acc!, algebra_threadfuse!
 
 
 function algebra_basic!(x::Array{Float64, 2}, y::Array{Float64, 2}, 
@@ -119,6 +119,25 @@ function algebra_threaded!(x::Array{Float64, 2}, y::Array{Float64, 2},
 
   nothing
 end 
+
+
+function algebra_threadfuse!(x::Array{Float64, 2}, y::Array{Float64, 2}, 
+  z::Array{Float64, 2}, nloops::Int, a::Array{Float64, 2}, 
+  b::Array{Float64, 2}, c::Array{Float64, 2}, d::Array{Float64, 2})
+
+  n, m = size(x)
+
+  for loop = 1:nloops
+    Threads.@threads for j in 1:m 
+      @views @. x[:, j] = a[:, j]*b[:, j] + c[:, j]*d[:, j]
+      @views @. y[:, j] = a[:, j] - 2.0*b[:, j]*c[:, j]*d[:, j]
+      @views @. z[:, j] = a[:, j]^2.0 + b[:, j]^2.0 - c[:, j]*d[:, j]
+    end
+  end
+
+  nothing
+end 
+
 
 
 
